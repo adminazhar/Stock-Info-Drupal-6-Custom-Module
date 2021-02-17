@@ -1,0 +1,4 @@
+name = Stock Details
+description = With this module you can check stock details of today
+version = 6.x-1.0
+core = 6.x

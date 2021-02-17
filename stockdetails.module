@@ -1,0 +1,101 @@
+<?php
+
+/**
+ * @file
+ * stock details module
+ */
+
+ /**
+  * Implementation of stockdetails_help
+  */
+ function stockdetails_help($path, $arg){
+    $output = '';
+    switch($path){
+        case 'admin/help#stockdetails':
+            $output = t('Hello this is Stock Details Module help page. Details will be added very soon to this page');
+            break;
+    }
+    return $output;
+ }
+
+ /**
+  * Implementation of stockdetails_perm
+  */
+  function stockdetails_perm(){
+    return array('access stockdetails');
+  }
+
+  /**
+   * Implementation of stockdetails_block
+   */
+  function stockdetails_block($op = 'list', $delta = 0, $edit = array()){
+    $block = array();
+    $search_symbol = 'IBM';
+    $apikey = 'demo';
+    switch ($op) {
+      case 'list':
+        $block[0]['info'] = t('Stock Details');
+      break;
+      case 'view':
+        $output = 'Hi from stock details';
+        $block['subject'] = t('Stock Details');
+        $symbol = 'AAPL';
+        $block['content'] = _stockdetails_fetch_stock($symbol);
+        break;
+      case 'save':
+        break;
+      case 'configure':
+        break;
+    }
+    return $block;
+  }
+
+  /**
+   * Implementation of stockdetails_fetch_stock
+   * It fetches the data from the api
+   * @returns the template 
+   */
+  function _stockdetails_fetch_stock($symbol){
+    $apikey = 'N7OX9J2ALM9B04MQ';
+    $url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol='.$symbol.'&apikey='.$apikey;
+    $json_data = file_get_contents($url);
+
+    $reportdata = json_decode($json_data, true);
+    $out = '';
+    $symbol = $reportdata['Global Quote']['01. symbol'];
+    $price = $reportdata['Global Quote']['05. price'];
+    $high = $reportdata['Global Quote']['03. high'];
+    $low = $reportdata['Global Quote']['04. low'];
+    $open = $reportdata['Global Quote']['02. open'];
+    $prevclose = $reportdata['Global Quote']['08. previous close'];
+    $change = $reportdata['Global Quote']['09. change'];
+    $changepercent = $reportdata['Global Quote']['10. change percent'];
+    $template = '<table>' 
+    . '<tr><td>Symbol</td><td>%s</td></tr>'
+    . '<tr><td>Price</td><td>%s</td></tr>'
+    . '<tr><td>High</td><td>%s</td></tr>'
+    . '<tr><td>Low</td><td>%s</td></tr>'
+    . '<tr><td>Open</td><td>%s</td></tr>'
+    . '<tr><td>Prev Close</td><td>%s<td></td></tr>'
+    . '<tr><td>Change</td><td>%s</td></tr>'
+    . '<tr><td>Change Percent</td><td>%s</td></tr></table>';
+    $out = sprintf($template, $symbol, $price, $high, $low, $open, $prevclose, $change, $changepercent);
+    return $out;
+  }
+
+  function stockdetails_menu() {
+    $items = array();
+    $items['stockdetails'] = array(
+      'title' => 'Stock Details',
+      'page callback' => 'stockdetails_page',
+      'access arguments' => array('access content',),
+      'type' => MENU_NORMAL_ITEM,
+    );
+    return $items;
+  }
+
+  function stockdetails_page(){
+    $search_symbol = $_GET['symbol'];
+
+    return _stockdetails_fetch_stock($search_symbol);
+  }
